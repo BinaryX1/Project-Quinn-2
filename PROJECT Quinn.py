@@ -3,6 +3,7 @@ import sqlite3
 from discord.ext import commands
 from discord import Embed, Color
 import requests
+import database
 
 #Fix having to use quotations for names with spaces
 
