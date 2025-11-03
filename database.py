@@ -77,4 +77,4 @@ def check_database_for_account(name):
     else:
         return None
 
-    
+

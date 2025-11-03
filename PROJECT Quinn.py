@@ -4,6 +4,7 @@ from discord.ext import commands
 from discord import Embed, Color
 import requests
 import database
+import time
 
 #Fix having to use quotations for names with spaces
 
@@ -56,6 +57,7 @@ headers = {"X-Riot-Token": os.getenv("RIOT_API_KEY")}
 
 @bot.command()
 async def redcarpet(ctx, summoner_name, tagLine):
+    start_time = time.time()
     ranked_loss_counter = 0
 
     await ctx.send(f"Tracking red carpet for {summoner_name} {tagLine}...")
@@ -98,7 +100,7 @@ async def redcarpet(ctx, summoner_name, tagLine):
         else:
             continue     
 
-    
+    print("%s seconds"%(time.time()-start_time))
     await ctx.send(f"{summoner_name} has a {ranked_loss_counter} game red carpet")
 
 @bot.command()
