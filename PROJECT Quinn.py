@@ -16,6 +16,8 @@ bot_token = os.getenv("DISCORD_BOT_TOKEN")
 
 bot = commands.Bot(command_prefix = "!", intents = discord.Intents.all())
 
+database.initialize_database()
+
 champion_key_to_name = {}
 def load_champion_data(): #Prepares champion database from data dragon for the live game command
     versions_url = f"https://ddragon.leagueoflegends.com/api/versions.json" #Getting correct version for data dragon
@@ -148,8 +150,14 @@ async def bluecarpet(ctx, summoner_name, tagLine):
     
     await ctx.send(f"{summoner_name} has a {ranked_win_counter} game blue carpet")
     
+
 @bot.command()
 async def rank(ctx, summoner_name, tagLine):
+    if(database.check_database_for_account(summoner_name)!=None):
+        rank_message = database.get_rank_from_database(summoner_name)
+        if(rank_message!=None):
+            await ctx.send(rank_message)
+            return
     puuid_data_url = f"https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{summoner_name}/{tagLine}"
     response1 = requests.get(puuid_data_url, headers=headers)
     print(response1)
@@ -172,7 +180,11 @@ async def rank(ctx, summoner_name, tagLine):
             summoner_rank = entries["tier"]
             summoner_division = entries["rank"]
             summoner_LP = entries["leaguePoints"]
-    await ctx.send(f"{summoner_name} is {summoner_rank} {summoner_division} {summoner_LP} LP")
+    rank_message = f"{summoner_name} is {summoner_rank} {summoner_division} {summoner_LP} LP"
+    if(database.check_database_for_account(summoner_name)==None):
+        database.create_player(summoner_name)
+        database.insert_rank_to_database(summoner_name, rank_message)
+    await ctx.send(rank_message)
 
 @bot.command()
 async def live(ctx, summoner_name, tagLine):
@@ -254,14 +266,14 @@ async def live(ctx, summoner_name, tagLine):
 
     Embed.add_field(live_embed, name = "Blue team", value = blue_team_players, inline=False)
     Embed.add_field(live_embed, name = "Red team", value = red_team_players, inline=False)
-            
-
-    
-
 
     await ctx.send(embed=live_embed)
 
-
+@bot.command()
+async def update(ctx, summoner_name):
+    if(database.check_database_for_account(summoner_name)!=None):
+        database.update_account(summoner_name)
+    await ctx.send(f"{summoner_name} updated")
     
 
 @bot.command()
