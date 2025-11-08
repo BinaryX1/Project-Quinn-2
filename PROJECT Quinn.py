@@ -60,6 +60,12 @@ headers = {"X-Riot-Token": os.getenv("RIOT_API_KEY")}
 @bot.command()
 async def redcarpet(ctx, summoner_name, tagLine):
     start_time = time.time()
+    if(database.check_database_for_account(summoner_name)!=None):
+        redcarpet = database.get_redcarpet_from_database(summoner_name)
+        if(redcarpet!=None):
+            await ctx.send(f"{summoner_name} has a {redcarpet} game redcarpet")
+            print("%s seconds"%(time.time()-start_time))
+            return
     ranked_loss_counter = 0
 
     await ctx.send(f"Tracking red carpet for {summoner_name} {tagLine}...")
@@ -101,12 +107,21 @@ async def redcarpet(ctx, summoner_name, tagLine):
             break
         else:
             continue     
-
+    if(database.get_redcarpet_from_database==None):
+        database.create_player(summoner_name)
+        database.insert_redcarpet_to_database(summoner_name, ranked_loss_counter)
+    else:
+        database.insert_redcarpet_to_database(summoner_name, ranked_loss_counter)        
     print("%s seconds"%(time.time()-start_time))
     await ctx.send(f"{summoner_name} has a {ranked_loss_counter} game red carpet")
 
 @bot.command()
 async def bluecarpet(ctx, summoner_name, tagLine):
+    if(database.check_database_for_account(summoner_name)!=None):
+        bluecarpet = database.get_bluecarpet_from_database(summoner_name)
+        if(bluecarpet!=None):
+            await ctx.send(f"{summoner_name} has a {bluecarpet} game bluecarpet")
+            return
     ranked_win_counter = 0
 
     await ctx.send(f"Tracking blue carpet for {summoner_name} {tagLine}...")
@@ -147,7 +162,11 @@ async def bluecarpet(ctx, summoner_name, tagLine):
             break
         else:
             continue               
-    
+    if(database.check_database_for_account(summoner_name)==None):
+        database.create_player(summoner_name)
+        database.insert_bluecarpet_to_database(summoner_name, ranked_win_counter)
+    else:
+        database.insert_bluecarpet_to_database(summoner_name, ranked_win_counter)
     await ctx.send(f"{summoner_name} has a {ranked_win_counter} game blue carpet")
     
 
@@ -183,6 +202,8 @@ async def rank(ctx, summoner_name, tagLine):
     rank_message = f"{summoner_name} is {summoner_rank} {summoner_division} {summoner_LP} LP"
     if(database.check_database_for_account(summoner_name)==None):
         database.create_player(summoner_name)
+        database.insert_rank_to_database(summoner_name, rank_message)
+    else:
         database.insert_rank_to_database(summoner_name, rank_message)
     await ctx.send(rank_message)
 
@@ -273,8 +294,7 @@ async def live(ctx, summoner_name, tagLine):
 async def update(ctx, summoner_name):
     if(database.check_database_for_account(summoner_name)!=None):
         database.update_account(summoner_name)
-    await ctx.send(f"{summoner_name} updated")
-    
+    await ctx.send(f"{summoner_name} updated")    
 
 @bot.command()
 async def tutorial(ctx):
